@@ -24,6 +24,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         simulatorwindow.h simulatorwindow.cpp simulatorwindow.ui
+        turingmachinekernel.h turingmachinekernel.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET TuringMachine APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
