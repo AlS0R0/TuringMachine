@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>478</width>
+    <width>479</width>
     <height>531</height>
    </rect>
   </property>
@@ -33,7 +33,7 @@
     <item>
      <widget class="QPushButton" name="StepMachine">
       <property name="text">
-       <string>Выполнить один шаг</string>
+       <string>Шаг</string>
       </property>
      </widget>
     </item>
@@ -48,6 +48,13 @@
      <widget class="QPushButton" name="StopMachine">
       <property name="text">
        <string>Остановить</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="ResetLine">
+      <property name="text">
+       <string>Сбросить</string>
       </property>
      </widget>
     </item>
