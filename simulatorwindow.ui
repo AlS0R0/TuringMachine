@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>500</y>
-     <width>461</width>
+     <width>473</width>
      <height>27</height>
     </rect>
    </property>
@@ -129,20 +129,17 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_5">
-    <item row="0" column="0" colspan="2">
-     <widget class="QTableWidget" name="TableConditions"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="AddCondition">
-      <property name="text">
-       <string>Добавить состояние</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
+    <item row="0" column="1">
      <widget class="QPushButton" name="RemoveCondition">
       <property name="text">
        <string>Убрать состояние</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QPushButton" name="AddCondition">
+      <property name="text">
+       <string>Добавить состояние</string>
       </property>
      </widget>
     </item>

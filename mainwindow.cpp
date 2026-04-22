@@ -47,7 +47,7 @@ void MainWindow::setAlphabet_clicked() {
     //hide();
     //this->close();
 
-    SimulatorWindow simWindow(this);
+    SimulatorWindow simWindow(text1, text2, this);
     simWindow.setModal(true);
     simWindow.exec();
 }
