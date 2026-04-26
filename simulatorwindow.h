@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "conditiontable.h"
+#include "tapewidget.h"
 #include <QTableView>
 
 namespace Ui {
@@ -21,10 +22,13 @@ public:
 private slots:
     void AddCondition_clicked();
     void RemoveCondition_clicked();
+    void ChangeAlphabet_clicked();
 
 private:
     Ui::SimulatorWindow *ui;
     ConditionTable *model;
+    TapeWidget *m_tapeWidget;
+    TuringMachineKernel *m_kernel;
     QTableView *tableView;
 };
 

@@ -21,6 +21,7 @@ protected:
 public:
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
+    QVector<QChar> getColumnHeaders() const;
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -28,6 +29,7 @@ public:
     bool addEmptyRow();
     bool removeRow();
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    void updateAlphabet(const QString &str1, const QString &str2, bool forceClear);
 };
 
 #endif // CONDITIONTABLE_H

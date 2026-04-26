@@ -1,6 +1,8 @@
 #include "simulatorwindow.h"
 #include "ui_simulatorwindow.h"
 #include "conditiontable.h"
+#include "tapewidget.h"
+#include "turingmachinekernel.h"
 #include <QTableView>
 
 /*
@@ -28,8 +30,15 @@ SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
 {
     ui->setupUi(this);
 
+    m_kernel = new TuringMachineKernel(this);
+
+    m_tapeWidget = new TapeWidget(this);
+    m_tapeWidget->setKernel(m_kernel); // ядро нужно создать или передать
+    ui->verticalLayout->insertWidget(0, m_tapeWidget); // или заменить существующий QGraphicsView
+
     connect(ui->AddCondition, &QPushButton::clicked, this, &SimulatorWindow::AddCondition_clicked);
     connect(ui->RemoveCondition, &QPushButton::clicked, this, &SimulatorWindow::RemoveCondition_clicked);
+    connect(ui->ChangeAlphabet, &QPushButton::clicked, this, &SimulatorWindow::ChangeAlphabet_clicked);
 
     this->model = new ConditionTable(1, str1, str2, this);
 
@@ -55,4 +64,10 @@ void SimulatorWindow::RemoveCondition_clicked()
 {
     if (model)
         this->model->removeRow();
+}
+
+void SimulatorWindow::ChangeAlphabet_clicked()
+{
+    hide();
+    this->model->addEmptyRow();
 }

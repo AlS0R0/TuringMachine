@@ -6,6 +6,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , alphabet({})
 {
     ui->setupUi(this);
     connect(ui->setAlphabet, &QPushButton::clicked, this, &MainWindow::setAlphabet_clicked);
@@ -21,17 +22,34 @@ void MainWindow::setAlphabet_clicked() {
     QString text1 = ui->lineEdit_1->text();
     QString text2 = ui->lineEdit_2->text();
 
-    if (text1.isEmpty()) {
-        QMessageBox::warning(this, "Ошибка", "Алфавит не может быть пустым");
-        return;
-    }
-
     QStringList symbols = (text1 + " " + text2).split(' ', Qt::SkipEmptyParts);
-    QSet<QChar> alphabet;
+
+    // if(!this->alphabet.isEmpty()) {
+    //     bool flag = 0;
+
+    //     for (int i = 0; i < alphabet.size(); ++i) {
+    //         for (int j = 0; j < symbols.size(); ++j) {
+    //             if (this->alphabet[i] == symbols[j]) {
+    //                 break;
+    //             } else if (this->alphabet[i] != symbols[j] && j == symbols.size() - 1) {
+    //                 flag = 1;
+    //                 break;
+    //             }
+    //         }
+
+    //         if(flag == 1) {
+    //             break;
+    //         }
+    //     }
+
+    //     if (flag == 0) {
+
+    //     }
+    // }
 
     for (int i = 0; i < symbols.size(); ++i) {
         const QString& s = symbols[i];
-        if (!s.isEmpty()) alphabet.insert(s[0]);
+        if (!s.isEmpty()) alphabet.push_back(s[0]);
     }
 
     if (alphabet.isEmpty()) {

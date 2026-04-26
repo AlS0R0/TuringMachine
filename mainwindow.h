@@ -22,5 +22,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QVector<QChar> alphabet;
 };
 #endif // MAINWINDOW_H

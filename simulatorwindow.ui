@@ -145,16 +145,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QGraphicsView" name="Tape">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>100</y>
-     <width>461</width>
-     <height>61</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QWidget" name="gridLayoutWidget_3">
    <property name="geometry">
     <rect>
@@ -183,6 +173,17 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>99</y>
+     <width>461</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout"/>
   </widget>
  </widget>
  <resources/>

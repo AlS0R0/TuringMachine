@@ -20,6 +20,11 @@ int ConditionTable::columnCount(const QModelIndex &parent) const
     return colCount_;
 }
 
+QVector<QChar> ConditionTable::getColumnHeaders() const
+{
+    return columnHeaders;
+}
+
 QVariant ConditionTable::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
@@ -108,4 +113,50 @@ QVariant ConditionTable::headerData(int section, Qt::Orientation orientation, in
             return QString(columnHeaders[section]);
     }
     return QVariant();
+}
+
+void ConditionTable::updateAlphabet(const QString &str1, const QString &str2, bool forceClear)
+{
+    QString all = str1 + str2;
+    QVector<QChar> newHeaders;
+    for (QChar ch : all) newHeaders.append(ch);
+    newHeaders.append('^'); // пустой символ
+
+    // 2. Если forceClear == true, удаляем все данные
+    if (forceClear) {
+        beginResetModel();
+        cellData_.clear();
+        columnHeaders = newHeaders;
+        colCount_ = columnHeaders.size();
+        endResetModel();
+        return;
+    }
+
+    // 3. Иначе – только расширение: старые символы все присутствуют, добавляем новые столбцы
+    // Проверяем, что все старые символы есть в новом наборе
+    bool allOldExist = true;
+    for (QChar oldCh : columnHeaders) {
+        if (!newHeaders.contains(oldCh)) {
+            allOldExist = false;
+            break;
+        }
+    }
+
+    if (!allOldExist) {
+        // Если какой-то старый символ исчез – очищаем всё (по ТЗ)
+        beginResetModel();
+        cellData_.clear();
+        columnHeaders = newHeaders;
+        colCount_ = columnHeaders.size();
+        endResetModel();
+        return;
+    }
+
+    // 4. Расширение: добавляем новые столбцы
+    // Сохраняем старые данные, просто увеличиваем количество столбцов
+    beginResetModel(); // проще reset, чем сложная вставка столбцов
+    columnHeaders = newHeaders;
+    colCount_ = columnHeaders.size();
+    // Старые данные остаются в cellData_ (их индексы столбцов не изменились)
+    endResetModel();
 }
