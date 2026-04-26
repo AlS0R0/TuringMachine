@@ -21,12 +21,13 @@ class TuringMachineKernel : public QObject
 public:
     explicit TuringMachineKernel(QObject *parent = nullptr);
 
-
+    // Алфавит
     void setAlphabet(const QSet<QChar> &tapeAlphabet);
     QSet<QChar> getAlphabet() const { return m_tapeAlphabet; }
     QChar getBlankSymbol() const { return m_blankSymbol; }
+    bool isSymbolValid(QChar ch) const;
 
-
+    // Состояния
     void setStates(const QVector<QString> &states);
     QVector<QString> getStates() const { return m_states; }
     void addState(const QString &state);
@@ -35,14 +36,15 @@ public:
     QString getHaltState() const { return m_haltState; }
     bool isHaltState(const QString &state) const { return state == m_haltState; }
 
-
+    // Правила переходов
     void setRule(const QString &state, QChar symbol, const Transition &trans);
     Transition getRule(const QString &state, QChar symbol) const;
     bool hasRule(const QString &state, QChar symbol) const;
     void clearRules();
 
-
+    // Управление лентой
     void setInputString(const QString &input);
+    bool validateInputString(const QString &input) const;   // проверка без изменения ленты
     void resetToInitial();
     QChar getSymbolAt(int position) const;
     void setSymbolAt(int position, QChar symbol);
@@ -50,7 +52,7 @@ public:
     void setHeadPosition(int pos);
     QString getCurrentState() const { return m_currentState; }
 
-
+    // Выполнение
     bool canStep() const;
     void step();
     bool isHalted() const { return m_halted; }
@@ -76,8 +78,6 @@ private:
     int m_headPos = 0;
     QString m_currentState;
     bool m_halted = false;
-
-    void applyTransition(const Transition &trans);
 };
 
 #endif // TURINGMACHINEKERNEL_H

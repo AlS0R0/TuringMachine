@@ -17,6 +17,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/*
 void MainWindow::setAlphabet_clicked() {
 
     QString text1 = ui->lineEdit_1->text();
@@ -64,6 +65,39 @@ void MainWindow::setAlphabet_clicked() {
 
     //hide();
     //this->close();
+
+    SimulatorWindow simWindow(text1, text2, this);
+    simWindow.setModal(true);
+    simWindow.exec();
+} */
+
+void MainWindow::setAlphabet_clicked() {
+    QString text1 = ui->lineEdit_1->text();
+    QString text2 = ui->lineEdit_2->text();
+
+    alphabet.clear();
+
+    // Собираем все символы без пробелов
+    auto addChars = [&](const QString &s) {
+        for (const QChar &ch : s) {
+            if (!ch.isSpace()) {
+                alphabet.append(ch);
+            }
+        }
+    };
+
+    addChars(text1);
+    addChars(text2);
+
+    if (alphabet.isEmpty()) {
+        QMessageBox::warning(this, "Ошибка", "Алфавит не может быть пустым");
+        return;
+    }
+
+    // Убираем возможные дубликаты (необязательно, но для порядка)
+    QSet<QChar> unique;
+    for (const QChar &ch : alphabet) unique.insert(ch);
+    alphabet = unique.values().toVector();
 
     SimulatorWindow simWindow(text1, text2, this);
     simWindow.setModal(true);

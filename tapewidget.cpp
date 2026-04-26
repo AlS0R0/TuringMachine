@@ -11,9 +11,8 @@ TapeWidget::TapeWidget(QWidget *parent)
     , m_animation(new QPropertyAnimation(this, "headVisualPos"))
 {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    setMinimumHeight(m_cellSize + 10);
+    setMinimumHeight(m_cellSize + 30); // с запасом для треугольника
 
-    // Настройка анимации: плавное замедление в конце
     m_animation->setEasingCurve(QEasingCurve::OutCubic);
     connect(m_animation, &QPropertyAnimation::finished,
             this, &TapeWidget::onAnimationFinished);
@@ -30,15 +29,10 @@ void TapeWidget::setKernel(TuringMachineKernel *kernel)
     if (m_kernel) {
         disconnect(m_kernel, nullptr, this, nullptr);
     }
-
     m_kernel = kernel;
-
     if (m_kernel) {
-        // Если ядро само изменяет позицию головки (например, при сбросе) –
-        // мгновенно синхронизируем виджет
         connect(m_kernel, &TuringMachineKernel::headMoved,
                 this, &TapeWidget::setHeadPosition);
-        // При изменении содержимого ленты – перерисовка
         connect(m_kernel, &TuringMachineKernel::tapeChanged,
                 this, [this]() { update(); });
     }
@@ -53,6 +47,23 @@ void TapeWidget::setSpeed(double factor)
 void TapeWidget::setBlankSymbol(const QChar &ch)
 {
     m_blankSymbol = ch;
+    update();
+}
+
+void TapeWidget::setVisibleCells(int count)
+{
+    if (count < 5) count = 5;
+    m_visibleCells = count;
+    updateTapeOffsetIfNeeded();
+    update();
+}
+
+void TapeWidget::setCellSize(int size)
+{
+    if (size < 30) size = 30;
+    m_cellSize = size;
+    setMinimumHeight(size + 30);
+    updateTapeOffsetIfNeeded();
     update();
 }
 
@@ -89,7 +100,7 @@ void TapeWidget::setHeadPosition(int logicalPos)
 {
     stopAnimation();
     m_headLogicalPos = logicalPos;
-    m_headVisualPos = logicalPos;      // сбрасываем дробную часть
+    m_headVisualPos = logicalPos;
     updateTapeOffsetIfNeeded();
     update();
 }
@@ -142,7 +153,7 @@ void TapeWidget::paintEvent(QPaintEvent * /*event*/)
     int cellW = m_cellSize;
     int totalWidth = cellW * m_visibleCells;
     int startX = (w - totalWidth) / 2;
-    int startY = (h - cellW) / 2;
+    int startY = (h - cellW - 30) / 2;   // 30 – отступ для треугольника
 
     int firstLogical = m_tapeOffset;
     int lastLogical  = firstLogical + m_visibleCells - 1;
@@ -151,7 +162,7 @@ void TapeWidget::paintEvent(QPaintEvent * /*event*/)
     painter.setFont(font);
     QFontMetrics fm(font);
 
-    // Ячейки
+    // 1. Рисуем ячейки ленты (без активной подсветки)
     for (int logIdx = firstLogical; logIdx <= lastLogical; ++logIdx) {
         int visIdx = logIdx - firstLogical;
         int x = startX + visIdx * cellW;
@@ -161,7 +172,6 @@ void TapeWidget::paintEvent(QPaintEvent * /*event*/)
         painter.drawRect(x, startY, cellW, cellW);
 
         QChar symbol = m_kernel->getSymbolAt(logIdx);
-        // Пустые позиции показываем специальным символом
         if (symbol.isNull())
             symbol = m_blankSymbol;
 
@@ -170,22 +180,37 @@ void TapeWidget::paintEvent(QPaintEvent * /*event*/)
                          Qt::AlignCenter, QString(symbol));
     }
 
-    // Каретка (полупрозрачный красный прямоугольник)
+    // 2. Подсветка активной ячейки – полупрозрачный прямоугольник
     double headVis = m_headVisualPos;
     double headX = startX + (headVis - m_tapeOffset) * cellW;
-    painter.setBrush(QColor(220, 20, 60, 180));
+    painter.setBrush(QColor(220, 20, 60, 100));   // красный, прозрачность 100/255
     painter.setPen(Qt::NoPen);
     painter.drawRect(QRectF(headX, startY, cellW, cellW));
+
+    // 3. Треугольник-указатель под лентой (перевёрнут остриём вверх)
+    double centerX = headX + cellW / 2.0;
+    double tipY      = startY + cellW + 4;      // кончик сразу под ячейкой
+    double baseY     = tipY + 14;               // основание ниже
+    double halfWidth = 10;
+
+    QPointF points[3] = {
+        QPointF(centerX, tipY),                     // вершина (вверх)
+        QPointF(centerX - halfWidth, baseY),        // левый нижний
+        QPointF(centerX + halfWidth, baseY)         // правый нижний
+    };
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(220, 20, 60, 200));     // красный, почти непрозрачный
+    painter.drawPolygon(points, 3);
 }
 
 void TapeWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    int newVis = qMax(5, width() / m_cellSize);
-    if (newVis != m_visibleCells) {
-        m_visibleCells = newVis;
-        updateTapeOffsetIfNeeded();
-    }
+    // Автоматически подбираем количество видимых ячеек под ширину виджета
+    // Если хотите фиксированное число – закомментируйте эту строку
+    m_visibleCells = qMax(5, width() / m_cellSize);
+    updateTapeOffsetIfNeeded();
     update();
 }
 
@@ -196,8 +221,8 @@ void TapeWidget::resizeEvent(QResizeEvent *event)
 void TapeWidget::onAnimationFinished()
 {
     m_animating = false;
-    m_headLogicalPos = qRound(m_headVisualPos);  // конечная позиция
-    m_headVisualPos = m_headLogicalPos;          // убираем дробную погрешность
+    m_headLogicalPos = qRound(m_headVisualPos);
+    m_headVisualPos = m_headLogicalPos;
 
     updateTapeOffsetIfNeeded();
     update();
@@ -209,7 +234,7 @@ void TapeWidget::updateTapeOffsetIfNeeded()
 {
     if (m_visibleCells <= 0) return;
 
-    int margin = qMax(2, m_visibleCells / 4);   // "треть или четверть" по ТЗ
+    int margin = qMax(2, m_visibleCells / 4);   // "треть или четверть"
     int headVisIdx = m_headLogicalPos - m_tapeOffset;
 
     if (headVisIdx < margin) {
@@ -218,7 +243,6 @@ void TapeWidget::updateTapeOffsetIfNeeded()
         m_tapeOffset = m_headLogicalPos - (m_visibleCells - margin - 1);
     }
 
-    // Гарантируем, что головка останется в видимой области
     m_tapeOffset = qMax(m_tapeOffset, m_headLogicalPos - m_visibleCells + 1);
     m_tapeOffset = qMin(m_tapeOffset, m_headLogicalPos);
 }
@@ -231,12 +255,11 @@ void TapeWidget::stopAnimation()
     }
 }
 
-// Свойство для Q_PROPERTY
 double TapeWidget::headVisualPos() const { return m_headVisualPos; }
 
 void TapeWidget::setHeadVisualPos(double pos) {
     if (!qFuzzyCompare(m_headVisualPos, pos)) {
         m_headVisualPos = pos;
-        update();   // перерисовка на каждом шаге анимации
+        update();
     }
 }

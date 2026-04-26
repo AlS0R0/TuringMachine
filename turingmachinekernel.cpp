@@ -14,6 +14,20 @@ void TuringMachineKernel::setAlphabet(const QSet<QChar> &tapeAlphabet)
     m_tapeAlphabet.insert(m_blankSymbol);
 }
 
+bool TuringMachineKernel::isSymbolValid(QChar ch) const
+{
+    return m_tapeAlphabet.contains(ch) || ch == m_blankSymbol;
+}
+
+bool TuringMachineKernel::validateInputString(const QString &input) const
+{
+    for (const QChar &ch : input) {
+        if (!isSymbolValid(ch))
+            return false;
+    }
+    return true;
+}
+
 void TuringMachineKernel::setStates(const QVector<QString> &states)
 {
     m_states = states;
@@ -49,9 +63,9 @@ void TuringMachineKernel::removeState(const QString &state)
 
 void TuringMachineKernel::setRule(const QString &state, QChar symbol, const Transition &trans)
 {
-    if (!m_tapeAlphabet.contains(symbol) && symbol != m_blankSymbol) return;
+    if (!isSymbolValid(symbol) && symbol != m_blankSymbol) return;
 
-    if (!m_tapeAlphabet.contains(trans.newSymbol) && trans.newSymbol != m_blankSymbol) return;
+    if (!isSymbolValid(trans.newSymbol) && trans.newSymbol != m_blankSymbol) return;
 
     if (!m_states.contains(trans.newState) && trans.newState != m_haltState) return;
 
@@ -79,17 +93,19 @@ void TuringMachineKernel::setInputString(const QString &input)
     m_headPos = 0;
 
     for (int i = 0; i < input.length(); ++i) {
-
         QChar ch = input[i];
-
-        if (m_tapeAlphabet.contains(ch) || ch == m_blankSymbol) {
-            m_tape[i] = ch;
-        } else {
-            qWarning() << "Invalid symbol in input string:" << ch;
-        }
+        // Разрешаем запись без строгой проверки, либо добавляем символ в алфавит динамически
+        m_tape[i] = ch;
+        // Оповещаем виджет об изменении конкретной ячейки (опционально, но полезно для отладки)
+        // emit tapeChanged(i, ch);
     }
+
     m_currentState = m_initialState;
     m_halted = false;
+
+    // 🔑 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: испускаем сигнал о смене позиции головки
+    // Это автоматически вызовет TapeWidget::setHeadPosition(), который сам вызовет update()
+    emit headMoved(m_headPos);
 }
 
 void TuringMachineKernel::resetToInitial()
@@ -143,9 +159,9 @@ void TuringMachineKernel::step()
     }
 
     switch (trans.direction) {
-        case 'L': m_headPos--; break;
-        case 'R': m_headPos++; break;
-        default: break;
+    case 'L': m_headPos--; break;
+    case 'R': m_headPos++; break;
+    default: break;
     }
 
     m_currentState = trans.newState;

@@ -5,49 +5,55 @@
 #include <QPropertyAnimation>
 #include <QTimer>
 #include <QMap>
-#include "turingmachinekernel.h"
 
-class TuringMachineKernel; // forward declaration
+class TuringMachineKernel;
 
 class TapeWidget : public QWidget
 {
     Q_OBJECT
+    // Убрали NOTIFY – для анимации он не нужен
     Q_PROPERTY(double headVisualPos READ headVisualPos WRITE setHeadVisualPos)
 
 public:
     explicit TapeWidget(QWidget *parent = nullptr);
     ~TapeWidget();
 
-    // Привязка к логическому ядру (поставщик данных ленты)
+    // Привязка к ядру машины Тьюринга (обязательно)
     void setKernel(TuringMachineKernel *kernel);
 
-    // Установка множителя скорости (0.1 – очень медленно, 1.0 – обычно)
+    // Управление скоростью перемещения (1.0 – нормальная)
     void setSpeed(double factor);
+    double speed() const { return m_speed; }
 
-    // Установка символа для пустой ячейки (по умолчанию '^')
+    // Символ для отображения пустой ячейки (по умолчанию '^')
     void setBlankSymbol(const QChar &ch);
+    QChar blankSymbol() const { return m_blankSymbol; }
 
-    // Плавное перемещение каретки к логической позиции
+    // Задать количество видимых ячеек (динамически)
+    void setVisibleCells(int count);
+    int visibleCells() const { return m_visibleCells; }
+
+    // Задать размер одной ячейки в пикселях
+    void setCellSize(int size);
+    int cellSize() const { return m_cellSize; }
+
+    // Переместить головку в логическую позицию (с анимацией или без)
     void moveHeadTo(int logicalPos, bool animate = true);
-
-    // Мгновенное перемещение (без анимации)
+    // Мгновенно установить позицию (без анимации)
     void setHeadPosition(int logicalPos);
 
-    // Загрузка входной строки на ленту (сбрасывает позицию головки)
+    // Загрузить строку на ленту и установить головку в начало
     void setTapeContent(const QString &input);
 
-    // Сброс – возврат к исходному состоянию (пустая лента, головка в 0)
+    // Сбросить виджет (пустая лента, головка в 0)
     void reset();
 
-    // Текущая логическая позиция головки
+    // Текущие данные
     int currentHeadPosition() const;
-
-    // Символ под головкой
     QChar currentSymbol() const;
 
 signals:
-    // Излучается, когда анимация одного шага полностью завершена.
-    // Полезно для пошагового или автоматического выполнения программы.
+    // Излучается по завершении анимации одного шага
     void stepFinished();
 
 protected:
@@ -58,31 +64,30 @@ private slots:
     void onAnimationFinished();
 
 private:
-    void updateTapeOffsetIfNeeded();
     void stopAnimation();
+    void updateTapeOffsetIfNeeded();
 
-    // Свойства для анимации
     double headVisualPos() const;
     void setHeadVisualPos(double pos);
 
-    // ===== Данные =====
+    // Ядро
     TuringMachineKernel *m_kernel = nullptr;
 
-    int m_headLogicalPos = 0;       // логическая позиция (целое)
-    double m_headVisualPos = 0.0;   // визуальная позиция (дробная, для анимации)
-    int m_tapeOffset = 0;           // смещение левого края видимой области в логических индексах
+    // Позиции
+    int m_headLogicalPos = 0;
+    double m_headVisualPos = 0.0;
+    int m_tapeOffset = 0;             // смещение левой видимой ячейки (логический индекс)
 
-    QChar m_blankSymbol = '^';      // обозначение пустого символа
+    // Внешний вид
+    QChar m_blankSymbol = '^';
+    int m_cellSize = 30;              // ширина и высота ячейки
+    int m_visibleCells = 15;          // увеличено по умолчанию
 
-    double m_speed = 1.0;           // множитель скорости
-    int m_baseAnimationDuration = 300; // базовая длительность перемещения на 1 ячейку (мс)
-
+    // Анимация
+    double m_speed = 1.0;
+    int m_baseAnimationDuration = 300; // базовое время на 1 ячейку (мс)
     QPropertyAnimation *m_animation = nullptr;
     bool m_animating = false;
-
-    // Визуальные параметры
-    int m_cellSize = 60;            // ширина/высота ячейки в пикселях
-    int m_visibleCells = 15;        // максимальное количество отображаемых ячеек
 };
 
 #endif // TAPEWIDGET_H

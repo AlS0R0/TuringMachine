@@ -5,6 +5,7 @@
 #include "conditiontable.h"
 #include "tapewidget.h"
 #include <QTableView>
+#include <QTimer>
 
 namespace Ui {
 class SimulatorWindow;
@@ -23,6 +24,13 @@ private slots:
     void AddCondition_clicked();
     void RemoveCondition_clicked();
     void ChangeAlphabet_clicked();
+    void SetLine_clicked();
+    void StartMachine_clicked();
+    void StepMachine_clicked();
+    void PauseMachine_clicked();
+    void StopMachine_clicked();
+    void ResetLine_clicked();
+    void loadRulesFromTable();
 
 private:
     Ui::SimulatorWindow *ui;
@@ -30,6 +38,11 @@ private:
     TapeWidget *m_tapeWidget;
     TuringMachineKernel *m_kernel;
     QTableView *tableView;
+    QTimer *m_stepTimer = nullptr;          // <-- добавлено
+    QString m_initialInput;                 // <-- исходная строка для сброса
+
+    // вспомогательный метод блокировки интерфейса во время работы
+    void setControlsEnabled(bool enabled);
 };
 
 #endif // SIMULATORWINDOW_H
