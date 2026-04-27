@@ -31,14 +31,14 @@ SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_kernel = new TuringMachineKernel(this);
+    kernel = new TuringMachineKernel();
 
     m_tapeWidget = new TapeWidget(this);
-    m_tapeWidget->setKernel(m_kernel); // ядро нужно создать или передать
-    //ui->verticalLayout->insertWidget(0, m_tapeWidget); // или заменить существующий QGraphicsView
 
-    // Вставляем ленту в gridLayout_3 на новую строку 0 (сверху)
     ui->verticalLayout->addWidget(m_tapeWidget);
+
+    Timer = new QTimer;
+    Timer->setInterval(500);
 
     connect(ui->AddCondition, &QPushButton::clicked, this, &SimulatorWindow::AddCondition_clicked);
     connect(ui->RemoveCondition, &QPushButton::clicked, this, &SimulatorWindow::RemoveCondition_clicked);
@@ -49,6 +49,9 @@ SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
     connect(ui->PauseMachine, &QPushButton::clicked, this, &SimulatorWindow::PauseMachine_clicked);
     connect(ui->StopMachine, &QPushButton::clicked, this, &SimulatorWindow::StopMachine_clicked);
     connect(ui->ResetLine, &QPushButton::clicked, this, &SimulatorWindow::ResetLine_clicked);
+    connect(ui->IncSpeed, &QPushButton::clicked, this, &SimulatorWindow::IncSpeed_clicked);
+    connect(ui->DecSpeed, &QPushButton::clicked, this, &SimulatorWindow::DecSpeed_clicked);
+
 
     this->model = new ConditionTable(1, str1, str2, this);
 
@@ -56,19 +59,6 @@ SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
     tableView->setModel(this->model);
 
     ui->gridLayout_5->addWidget(tableView);
-
-    m_stepTimer = new QTimer(this);
-    m_stepTimer->setInterval(500);  // 500 мс между шагами
-    connect(m_stepTimer, &QTimer::timeout, this, [this]() {
-        // Автоматический шаг при срабатывании таймера
-        if (m_kernel->canStep()) {
-            m_kernel->step();
-            m_tapeWidget->moveHeadTo(m_kernel->getHeadPosition(), true);  // с анимацией
-        } else {
-            m_stepTimer->stop();  // остановка, если нет правил или машина остановилась
-            setControlsEnabled(true);
-        }
-    });
 
 }
 
@@ -110,162 +100,83 @@ void SimulatorWindow::SetLine_clicked()
 {
     QString input = ui->LineTape->text();
 
-    m_kernel->setInputString(input);
-    m_initialInput = input;
-
-    m_tapeWidget->setHeadPosition(m_kernel->getHeadPosition());
+    kernel->setInputString(input);
+    initialInput_ = input;
 }
 
-void SimulatorWindow::StartMachine_clicked() {
+void SimulatorWindow::StartMachine_clicked()
+{
     loadRulesFromTable();
 
 
-
-    if (!m_kernel->hasAnyHaltTransition()) {
-        QMessageBox::warning(this, "Ошибка", "Нет ни одного правила, ведущего к остановке! "
-                             "Добавьте хотя бы одно правило с переходом в состояние останова.");
-        return;
-    }
-
-    setControlsEnabled(false);
-    m_tapeWidget->setHeadPosition(m_kernel->getHeadPosition());
-    m_tapeWidget->update();
-
-    if (!m_kernel->hasAnyHaltTransition()) {
-        QMessageBox::warning(this, "Ошибка",
-                             "Нет ни одного правила, ведущего к остановке!");
-        return;
-    }
-
-    // Проверка: есть ли правило для текущего состояния/символа
-    if (!m_kernel->canStep()) {
-        QMessageBox::information(this, "Информация",
-                                 "Нет правила для начального состояния и первого символа.");
-        return;
-    }
-
-    setControlsEnabled(false);
-    m_tapeWidget->setHeadPosition(m_kernel->getHeadPosition());
-
-    // 🔑 ЗАПУСК ТАЙМЕРА — машина начнёт работать
-    m_stepTimer->start();
 }
 
 void SimulatorWindow::StepMachine_clicked() {
-    if (m_stepTimer->isActive())
-        return;
-
-    if (m_kernel->canStep()) {
-        m_kernel->step();
-        m_tapeWidget->moveHeadTo(m_kernel->getHeadPosition());
-    } else {
-        QMessageBox::information(this, "Шаг", "Невозможно выполнить шаг (нет правила или машина остановлена).");
+    if (!kernel->step()) {
+        QMessageBox::information(this,"Стоп","Нет правила");
     }
+    //updateView();
 }
 
 void SimulatorWindow::PauseMachine_clicked() {
-    m_stepTimer->stop();
+    Timer->stop();
 }
 
 void SimulatorWindow::StopMachine_clicked() {
-    m_stepTimer->stop();
+    Timer->stop();
     setControlsEnabled(true);
 }
 
 void SimulatorWindow::ResetLine_clicked() {
-    m_stepTimer->stop();
+    Timer->stop();
 
-    // Восстанавливаем исходную строку и помещаем головку на начало
-    m_kernel->setInputString(m_initialInput);
-    m_tapeWidget->setHeadPosition(m_kernel->getHeadPosition());
+    kernel->reset(initialInput_);
     m_tapeWidget->update();
 
     setControlsEnabled(true);
 }
 
+void SimulatorWindow::IncSpeed_clicked() {
+    int currentInterval = Timer->interval();
+    Timer->setInterval(currentInterval + 50);
+}
+
+void SimulatorWindow::DecSpeed_clicked() {
+    int currentInterval = Timer->interval();
+    if (currentInterval >= 100) Timer->setInterval(currentInterval - 50);
+}
+
 void SimulatorWindow::loadRulesFromTable()
 {
-    if (!model || !m_kernel) return;
+    if (!model || !kernel) return;
 
     // 1. Синхронизируем алфавит ядра с заголовками таблицы
-    QVector<QChar> headers = model->getColumnHeaders();
-    QSet<QChar> alphabet(headers.begin(), headers.end());
-    m_kernel->setAlphabet(alphabet);
+    QVector<QChar> headers_col = model->getColumnHeaders();
+    //QVector<QChar> headers_row = model->getRowHeaders();
+    //qDebug() << headers_col << ' ' << headers_row;
+    // QSet<QChar> alphabet(headers.begin(), headers.end());
 
-    // 2. Очищаем старые правила
-    m_kernel->clearRules();
-
-    // 🔑 Важно: передаём QModelIndex(), т.к. в вашем ConditionTable нет аргумента по умолчанию
     int rows = model->rowCount(QModelIndex());
     int cols = model->columnCount(QModelIndex());
 
-    for (int r = 0; r < rows; ++r) {
-        QString currentState = QString("q%1").arg(r);
-        m_kernel->addState(currentState);
+    for(int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            QModelIndex idx = model->index(i, j);
+            QString value = (model->data(idx, Qt::DisplayRole)).toString();
+            qDebug() << value;
 
-        for (int c = 0; c < cols; ++c) {
-            QModelIndex idx = model->index(r, c);
-            QVariant val = model->data(idx, Qt::DisplayRole);
+            QStringList list = value.split(",");
+            QVector<QString> vec = list.toVector();
 
-            if (val.isValid() && !val.toString().trimmed().isEmpty()) {
-                QString cellText = val.toString().trimmed();
-                QStringList parts = cellText.split(',', Qt::SkipEmptyParts);
+            qDebug() << vec;
 
-                // 🔑 Поддержка 1, 2 или 3 значений
-                if (parts.size() >= 1 && parts.size() <= 3) {
+            if (vec.size() != 3) continue;
 
-                    // === Парсинг нового состояния (обязательно) ===
-                    QString newState = parts[0].trimmed();
-                    // 🔑 Знак "!" = состояние останова
-                    if (newState == "!") {
-                        newState = m_kernel->getHaltState();
-                    }
+            Rule rule {vec[0].isEmpty() ? QChar::Null : vec[0].at(0),
+                      vec[1].isEmpty() ? QChar::Null : vec[1].at(0), vec[2]};
 
-                    // === Парсинг нового символа (опционально) ===
-                    QChar newSymbol;
-                    bool keepCurrentSymbol = true;  // флаг: не менять символ на ленте
-                    if (parts.size() >= 2) {
-                        QString symStr = parts[1].trimmed();
-                        if (!symStr.isEmpty()) {
-                            newSymbol = symStr[0];
-                            keepCurrentSymbol = false;
-                        }
-                    }
-
-                    // === Парсинг направления (опционально) ===
-                    char direction = 'S';  // по умолчанию — стоять на месте
-                    if (parts.size() >= 3) {
-                        QString dirStr = parts[2].trimmed();
-                        if (!dirStr.isEmpty()) {
-                            direction = dirStr[0].toUpper().toLatin1(); // L, R или S
-                        }
-                    }
-
-                    // === Сборка перехода ===
-                    Transition trans;
-                    trans.newState = newState;
-
-                    // Если символ не указан — оставляем текущий символ на ленте без изменений
-                    if (keepCurrentSymbol) {
-                        QChar currentSymbol = (c < headers.size()) ? headers[c] : QChar('^');
-                        trans.newSymbol = currentSymbol;
-                    } else {
-                        trans.newSymbol = newSymbol;
-                    }
-                    trans.direction = direction;
-
-                    // Регистрируем новое состояние в ядре
-                    m_kernel->addState(newState);
-
-                    // Текущий символ для ключа правила
-                    QChar currentSymbol = (c < headers.size()) ? headers[c] : QChar('^');
-                    m_kernel->setRule(currentState, currentSymbol, trans);
-
-                } else {
-                    qWarning() << "Ошибка формата в ячейке (" << r << "," << c << "):"
-                               << "ожидается 1-3 значения через запятую, получено:" << cellText;
-                }
-            }
+            QString state = 'q' + (QChar)i;
+            kernel->setRule(state, headers_col[j], rule);
         }
     }
 }

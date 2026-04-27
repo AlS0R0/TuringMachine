@@ -31,15 +31,17 @@ private slots:
     void StopMachine_clicked();
     void ResetLine_clicked();
     void loadRulesFromTable();
+    void IncSpeed_clicked();
+    void DecSpeed_clicked();
 
 private:
     Ui::SimulatorWindow *ui;
     ConditionTable *model;
     TapeWidget *m_tapeWidget;
-    TuringMachineKernel *m_kernel;
+    TuringMachineKernel *kernel;
     QTableView *tableView;
-    QTimer *m_stepTimer = nullptr;          // <-- добавлено
-    QString m_initialInput;                 // <-- исходная строка для сброса
+    QTimer *Timer = nullptr;          // <-- добавлено
+    QString initialInput_;                 // <-- исходная строка для сброса
 
     // вспомогательный метод блокировки интерфейса во время работы
     void setControlsEnabled(bool enabled);

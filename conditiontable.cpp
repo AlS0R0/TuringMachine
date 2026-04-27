@@ -25,6 +25,20 @@ QVector<QChar> ConditionTable::getColumnHeaders() const
     return columnHeaders;
 }
 
+QVector<QChar> ConditionTable::getRowHeaders() const {
+    QVector<QChar> headers;
+
+    int rowCount = this->rowCount_;
+
+    for (int i = 0; i < rowCount; ++i) {
+        QVariant data = this->headerData(i, Qt::Vertical, Qt::DisplayRole);
+        headers.push_back(data.toChar());
+    }
+
+    return headers;
+}
+
+
 QVariant ConditionTable::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
