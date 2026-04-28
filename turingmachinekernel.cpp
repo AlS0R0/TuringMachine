@@ -34,8 +34,13 @@ void TuringMachineKernel::setRule(const QString &state, QChar symbol, const Rule
 }
 
 bool TuringMachineKernel::step() {
+    qDebug() << tape_;
     QChar current = tape_.contains(head_) ? tape_[head_] : blank_symbol_;
 
+    qDebug() << current;
+    qDebug() << currentState_;
+    qDebug() << rules_[currentState_].contains(current);
+    qDebug() << tape_;
     if (!rules_.contains(currentState_) || !rules_[currentState_].contains(current))
         return false;
 

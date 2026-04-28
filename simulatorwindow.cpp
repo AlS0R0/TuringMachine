@@ -34,11 +34,13 @@ SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
     kernel = new TuringMachineKernel();
 
     m_tapeWidget = new TapeWidget(this);
+    m_tapeWidget->setKernel(kernel);
 
     ui->verticalLayout->addWidget(m_tapeWidget);
 
     Timer = new QTimer;
     Timer->setInterval(500);
+    connect(Timer, &QTimer::timeout, this, &SimulatorWindow::StepMachine_clicked);
 
     connect(ui->AddCondition, &QPushButton::clicked, this, &SimulatorWindow::AddCondition_clicked);
     connect(ui->RemoveCondition, &QPushButton::clicked, this, &SimulatorWindow::RemoveCondition_clicked);
@@ -102,20 +104,29 @@ void SimulatorWindow::SetLine_clicked()
 
     kernel->setInputString(input);
     initialInput_ = input;
+    m_tapeWidget->setKernel(kernel);
 }
 
 void SimulatorWindow::StartMachine_clicked()
 {
     loadRulesFromTable();
 
+    if (Timer) {
+        Timer->start();
+    }
 
+    setControlsEnabled(false);
 }
 
 void SimulatorWindow::StepMachine_clicked() {
     if (!kernel->step()) {
-        QMessageBox::information(this,"Стоп","Нет правила");
+        QMessageBox::information(this, "Стоп", "Машина остановилась (нет правила)");
+        PauseMachine_clicked();
+        return;
     }
-    //updateView();
+    // kernel->step();
+    m_tapeWidget->animateStep();
+    qDebug() << "Step";
 }
 
 void SimulatorWindow::PauseMachine_clicked() {
@@ -129,10 +140,9 @@ void SimulatorWindow::StopMachine_clicked() {
 
 void SimulatorWindow::ResetLine_clicked() {
     Timer->stop();
-
     kernel->reset(initialInput_);
+    m_tapeWidget->setKernel(kernel);  // сбросить визуальное положение
     m_tapeWidget->update();
-
     setControlsEnabled(true);
 }
 
@@ -163,6 +173,7 @@ void SimulatorWindow::loadRulesFromTable()
         for (int j = 0; j < cols; ++j) {
             QModelIndex idx = model->index(i, j);
             QString value = (model->data(idx, Qt::DisplayRole)).toString();
+            qDebug() << '\n' << '\n';
             qDebug() << value;
 
             QStringList list = value.split(",");
@@ -175,7 +186,10 @@ void SimulatorWindow::loadRulesFromTable()
             Rule rule {vec[0].isEmpty() ? QChar::Null : vec[0].at(0),
                       vec[1].isEmpty() ? QChar::Null : vec[1].at(0), vec[2]};
 
-            QString state = 'q' + (QChar)i;
+            QString state = "q" + QString::number(i);
+            qDebug() << state;
+            qDebug() << headers_col[j];
+            qDebug() << '\n' << '\n';
             kernel->setRule(state, headers_col[j], rule);
         }
     }
