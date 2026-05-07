@@ -41,10 +41,10 @@ private:
     TapeWidget *m_tapeWidget;
     TuringMachineKernel *kernel;
     QTableView *tableView;
-    QTimer *Timer = nullptr;          // <-- добавлено
-    QString initialInput_;                 // <-- исходная строка для сброса
+    QTimer *Timer = nullptr;
+    QString initialInput_;
 
-    // вспомогательный метод блокировки интерфейса во время работы
+
     void setControlsEnabled(bool enabled);
 };
 

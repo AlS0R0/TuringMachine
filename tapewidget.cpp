@@ -25,7 +25,7 @@ void TapeWidget::setKernel(TuringMachineKernel *kernel)
 
     if (m_kernel) {
         m_caretLogicalX = m_kernel->getHead() * m_cellWidth;
-        m_scrollOffset = 0;                // сбрасываем смещение
+        m_scrollOffset = 0;
         adjustScroll();
         update();
     }
@@ -65,7 +65,7 @@ void TapeWidget::paintEvent(QPaintEvent*)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    painter.fillRect(rect(), QColor("#f0f0f0")); // светло-серый фон ленты
+    painter.fillRect(rect(), QColor("#f0f0f0"));
 
     if (!m_kernel) return;
 
@@ -88,17 +88,15 @@ void TapeWidget::paintEvent(QPaintEvent*)
         painter.drawText(cellRect, Qt::AlignCenter, symbol);
     }
 
-    // Подсветка текущей ячейки (синяя рамка)
     int headIndex = m_kernel->getHead();
     int headCellX = headIndex * m_cellWidth - m_scrollOffset;
     QRect headRect(headCellX, 5, m_cellWidth, m_cellHeight);
     painter.setPen(QPen(Qt::blue, 2));
     painter.drawRect(headRect);
 
-    // Красный треугольник-каретка под ячейкой
     double caretVisX = visualCaretX();
-    int caretX = qRound(caretVisX) + m_cellWidth / 2;      // центр ячейки
-    int caretY = 5 + m_cellHeight + 4;                     // чуть ниже ячейки
+    int caretX = qRound(caretVisX) + m_cellWidth / 2;
+    int caretY = 5 + m_cellHeight + 4;
 
     QPolygon triangle;
     triangle << QPoint(caretX, caretY)

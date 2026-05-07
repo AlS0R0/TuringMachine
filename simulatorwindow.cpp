@@ -7,24 +7,6 @@
 #include <QTableView>
 #include <QMessageBox>
 
-/*
-SimulatorWindow::SimulatorWindow(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::SimulatorWindow)
-{
-    ui->setupUi(this);
-
-    ConditionTable *table = new ConditionTable(10, 10, this);
-    QModelIndex index = table->index(2, 3);
-    table->setData(index, "^", Qt::EditRole);
-
-    QTableView *tableView = new QTableView();
-    tableView->setModel(table);
-
-    ui->gridLayout_5->addWidget(tableView);
-
-}
-*/
 
 SimulatorWindow::SimulatorWindow(QVector<QChar> vec, QWidget *parent)
     : QDialog(parent)
@@ -80,7 +62,6 @@ void SimulatorWindow::setControlsEnabled(bool enabled)
     ui->ChangeAlphabet->setEnabled(enabled);
     ui->StartMachine->setEnabled(enabled);
     ui->ContinueButton->setEnabled(enabled);
-    // Кнопки скорости всегда активны
 }
 
 void SimulatorWindow::AddCondition_clicked()
@@ -145,11 +126,7 @@ void SimulatorWindow::StepMachine_clicked() {
         return;
     }
 
-    qDebug() << "Timer: " << Timer->interval() << '\n';
-
-    // kernel->step();
     m_tapeWidget->animateStep();
-    qDebug() << "Step";
 }
 
 void SimulatorWindow::ContinueButton_clicked() {
@@ -190,26 +167,47 @@ void SimulatorWindow::loadRulesFromTable()
     if (!model || !kernel) return;
 
     QVector<QChar> headers_col = model->getColumnHeaders();
-
     int rows = model->rowCount(QModelIndex());
     int cols = model->columnCount(QModelIndex());
 
-    for(int i = 0; i < rows; ++i) {
+    for (int i = 0; i < rows; ++i) {
+
+        QString state = "q" + QString::number(i);
+
         for (int j = 0; j < cols; ++j) {
+
             QModelIndex idx = model->index(i, j);
-            QString value = (model->data(idx, Qt::DisplayRole)).toString();
+            QString value = model->data(idx, Qt::DisplayRole).toString().trimmed();
+            if (value.isEmpty()) continue;
 
-            QStringList list = value.split(",");
-            QVector<QString> vec = list.toVector();
+            QStringList parts = value.split(',', Qt::SkipEmptyParts);
 
+            QChar direction = 'S';
+            QChar writeChar = headers_col[j];
+            QString nextState = state;
+            bool isHalt = false;
 
-            if (vec.size() != 3) continue;
+            for (const QString &part : parts) {
+                if (part == "L" || part == "R") {
+                    direction = part[0];
+                } else if (part == "!") {
+                    isHalt = true;
+                } else if (part.size() == 2 && part[0] == 'q' && part[1].isDigit()) {
+                    nextState = part;
+                } else if (part.size() == 1) {
+                    writeChar = part[0];
+                } else {
+                    QMessageBox::warning(this, "Стоп", "Не существует подходящего действия");
+                }
+            }
 
-            Rule rule {vec[0].isEmpty() ? QChar::Null : vec[0].at(0),
-                      vec[1].isEmpty() ? QChar::Null : vec[1].at(0), vec[2]};
-
-            QString state = "q" + QString::number(i);
-            kernel->setRule(state, headers_col[j], rule);
+            if (isHalt) {
+                Rule rule {'!', writeChar, nextState};
+                kernel->setRule(state, headers_col[j], rule);
+            } else {
+                Rule rule {direction, writeChar, nextState};
+                kernel->setRule(state, headers_col[j], rule);
+            }
         }
     }
 }

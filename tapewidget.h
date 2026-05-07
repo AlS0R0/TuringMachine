@@ -19,7 +19,7 @@ public:
     ~TapeWidget();
 
     void setKernel(TuringMachineKernel *kernel);
-    void animateStep();   // запускает плавное перемещение каретки к текущему head_
+    void animateStep();
 
     double caretLogicalX() const;
     void setCaretLogicalX(double x);
@@ -37,10 +37,10 @@ private:
 
     int m_cellWidth = 30;
     int m_cellHeight = 30;
-    double m_caretLogicalX = 0.0;  // положение каретки в пикселях на ленте (без учёта сдвига)
-    int m_scrollOffset = 0;        // смещение ленты в пикселях
+    double m_caretLogicalX = 0.0;
+    int m_scrollOffset = 0;
 
-    void adjustScroll();            // резко сдвигает ленту, если каретка у края
-    double visualCaretX() const;    // координата каретки на виджете
+    void adjustScroll();
+    double visualCaretX() const;
 };
 #endif

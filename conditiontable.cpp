@@ -1,19 +1,11 @@
 #include "conditiontable.h"
 #include <QAbstractTableModel>
 
-// ConditionTable::ConditionTable(int rows, const QString &str1, const QString &str2, QObject* parent)
-//     : QAbstractTableModel(parent), rowCount_(rows), colCount_(str1.size() + str2.size() + 1)
-// {
-//     QString all = str1 + str2;
-//     for (QChar ch : all) columnHeaders.append(ch);
-//     columnHeaders.append('^');  // пустой символ
-//     colCount_ = columnHeaders.size();
-// }
 
 ConditionTable::ConditionTable(int rows, const QVector<QChar> &vec, QObject* parent)
     : QAbstractTableModel(parent), rowCount_(rows), colCount_(vec.size() + 1), columnHeaders(vec)
 {
-    columnHeaders.append('^');  // пустой символ
+    columnHeaders.append('^');
 }
 
 int ConditionTable::rowCount(const QModelIndex &parent) const
@@ -31,25 +23,16 @@ QVector<QChar> ConditionTable::getColumnHeaders() const
     return columnHeaders;
 }
 
-QVector<QChar> ConditionTable::getRowHeaders() const {
-    QVector<QChar> headers;
-
-    int rowCount = this->rowCount_;
-
-    for (int i = 0; i < rowCount; ++i) {
-        QVariant data = this->headerData(i, Qt::Vertical, Qt::DisplayRole);
-        headers.push_back(data.toChar());
-    }
-
-    return headers;
-}
-
 
 QVariant ConditionTable::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) {
         return QVariant();
     }
+
+    // if (role == Qt::BackgroundRole) {
+    //     return QColor(Qt::yellow);
+    // }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         return cellData_.value(index, QVariant());
@@ -81,18 +64,6 @@ Qt::ItemFlags ConditionTable::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
 }
 
-/*
-bool ConditionTable::addRows(int row, int count, const QModelIndex &parent)
-{
-    if (row < 0 || row > rowCount_) return false;
-    beginInsertRows(parent, row, row + count - 1);
-    rowCount_ += count;
-    // Здесь можно сдвинуть данные, но для пустых строк необязательно
-    endInsertRows();
-    return true;
-}
-*/
-
 bool ConditionTable::addEmptyRow()
 {
     beginInsertRows(QModelIndex(), rowCount_, rowCount_);
@@ -122,6 +93,13 @@ bool ConditionTable::removeRow()
 
 QVariant ConditionTable::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    // if (role == Qt::BackgroundRole) {
+    //     if (orientation == Qt::Vertical) {
+    //         return QColor(Qt::yellow);   // цвет подсветки заголовка (например, светло-серый)
+    //     }
+    //     return QVariant();
+    // }
+
     if (role != Qt::DisplayRole) {
         return QVariant();
     }

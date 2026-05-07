@@ -23,7 +23,6 @@ void MainWindow::setAlphabet_clicked() {
 
     alphabet.clear();
 
-    // Собираем все символы без пробелов
     auto addChars = [&](const QString &s) {
         for (const QChar &ch : s) {
             if (!ch.isSpace()) {
@@ -40,7 +39,6 @@ void MainWindow::setAlphabet_clicked() {
         return;
     }
 
-    // Убираем возможные дубликаты (необязательно, но для порядка)
     QSet<QChar> unique;
     for (const QChar &ch : alphabet) unique.insert(ch);
     alphabet = unique.values().toVector();
