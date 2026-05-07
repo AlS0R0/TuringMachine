@@ -10,8 +10,9 @@ TapeWidget::TapeWidget(QWidget *parent)
 {
     setMinimumSize(400, 70);
     m_animation = new QPropertyAnimation(this, "caretLogicalX", this);
-    m_animation->setDuration(300);
+    m_animation->setDuration(50);
     m_animation->setEasingCurve(QEasingCurve::InOutCubic);
+
     connect(m_animation, &QPropertyAnimation::finished,
             this, &TapeWidget::onAnimationFinished);
 }
@@ -21,6 +22,7 @@ TapeWidget::~TapeWidget() {}
 void TapeWidget::setKernel(TuringMachineKernel *kernel)
 {
     m_kernel = kernel;
+
     if (m_kernel) {
         m_caretLogicalX = m_kernel->getHead() * m_cellWidth;
         m_scrollOffset = 0;                // сбрасываем смещение
@@ -43,25 +45,22 @@ void TapeWidget::setCaretLogicalX(double x)
 void TapeWidget::animateStep()
 {
     if (!m_kernel) return;
-    qDebug() << "in animateStep";
     int targetIndex = m_kernel->getHead();
-    qDebug() << "targetIndex:  " << targetIndex;
     double targetX = targetIndex * m_cellWidth;
-    qDebug() << "targetX: " << targetX;
+
     if (qFuzzyCompare(targetX, m_caretLogicalX)) {
         adjustScroll();
         update();
-        // qDebug() << "Остаемся на месте или двигаемся";
         return;
     }
-    qDebug() << "В анимации";
+
     m_animation->stop();
     m_animation->setStartValue(m_caretLogicalX);
     m_animation->setEndValue(targetX);
     m_animation->start();
 }
 
-void TapeWidget::paintEvent(QPaintEvent * /*event*/)
+void TapeWidget::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -100,11 +99,13 @@ void TapeWidget::paintEvent(QPaintEvent * /*event*/)
     double caretVisX = visualCaretX();
     int caretX = qRound(caretVisX) + m_cellWidth / 2;      // центр ячейки
     int caretY = 5 + m_cellHeight + 4;                     // чуть ниже ячейки
+
     QPolygon triangle;
     triangle << QPoint(caretX, caretY)
              << QPoint(caretX - 6, caretY + 10)
              << QPoint(caretX + 6, caretY + 10);
-    painter.setBrush(Qt::red);
+
+    painter.setBrush(Qt::green);
     painter.setPen(Qt::red);
     painter.drawPolygon(triangle);
 }
@@ -126,17 +127,22 @@ void TapeWidget::onAnimationFinished()
 void TapeWidget::adjustScroll()
 {
     if (!m_kernel) return;
+
     double caretVisX = visualCaretX();
-    double marginLeft = width() * 0.25;
+    double marginLeft = width() * 0.75;
     double marginRight = width() * 0.75;
 
     if (caretVisX < marginLeft) {
+
         double delta = marginLeft - caretVisX;
         m_scrollOffset = qMax(0, m_scrollOffset - (int)delta);
+
     } else if (caretVisX > marginRight) {
+
         double delta = caretVisX - marginRight;
         m_scrollOffset += (int)delta;
     }
+
     m_caretLogicalX = m_kernel->getHead() * m_cellWidth;
 }
 

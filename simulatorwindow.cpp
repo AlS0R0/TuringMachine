@@ -120,10 +120,13 @@ void SimulatorWindow::StartMachine_clicked()
 
 void SimulatorWindow::StepMachine_clicked() {
     if (!kernel->step()) {
-        QMessageBox::information(this, "Стоп", "Машина остановилась (нет правила)");
+        QMessageBox::information(this, "Стоп", "Машина остановилась");
         PauseMachine_clicked();
         return;
     }
+
+    qDebug() << "Timer: " << Timer->interval() << '\n';
+
     // kernel->step();
     m_tapeWidget->animateStep();
     qDebug() << "Step";
@@ -141,7 +144,7 @@ void SimulatorWindow::StopMachine_clicked() {
 void SimulatorWindow::ResetLine_clicked() {
     Timer->stop();
     kernel->reset(initialInput_);
-    m_tapeWidget->setKernel(kernel);  // сбросить визуальное положение
+    m_tapeWidget->setKernel(kernel);
     m_tapeWidget->update();
     setControlsEnabled(true);
 }
@@ -160,11 +163,10 @@ void SimulatorWindow::loadRulesFromTable()
 {
     if (!model || !kernel) return;
 
-    // 1. Синхронизируем алфавит ядра с заголовками таблицы
     QVector<QChar> headers_col = model->getColumnHeaders();
     //QVector<QChar> headers_row = model->getRowHeaders();
     //qDebug() << headers_col << ' ' << headers_row;
-    // QSet<QChar> alphabet(headers.begin(), headers.end());
+    //QSet<QChar> alphabet(headers.begin(), headers.end());
 
     int rows = model->rowCount(QModelIndex());
     int cols = model->columnCount(QModelIndex());

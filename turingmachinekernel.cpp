@@ -49,6 +49,8 @@ bool TuringMachineKernel::step() {
     tape_[head_] = rule.new_symbol;
     if (rule.direction == 'R') head_ += 1;
     else if (rule.direction == 'L') head_ -= 1;
+    else if (rule.direction == 'S') head_ += 0;
+    else if (rule.direction == '!') return false;
     else qDebug() << "Error";
 
     currentState_ = rule.nextState;
