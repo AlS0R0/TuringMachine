@@ -115,6 +115,13 @@ void SimulatorWindow::SetLine_clicked()
 {
     QString input = ui->LineTape->text();
 
+    for (int i = 0; i < input.size(); ++i) {
+        if (!model->getColumnHeaders().contains(input[i]) || input[i] == '^') {
+            QMessageBox::warning(this, "Стоп", "Входящая строка содержит неприемлемые символы");
+            return;
+        }
+    }
+
     kernel->setInputString(input);
     initialInput_ = input;
     m_tapeWidget->setKernel(kernel);
@@ -170,12 +177,12 @@ void SimulatorWindow::ResetLine_clicked() {
 
 void SimulatorWindow::IncSpeed_clicked() {
     int currentInterval = Timer->interval();
-    if (currentInterval >= 100) Timer->setInterval(currentInterval - 50);
+    if (currentInterval >= 200) Timer->setInterval(currentInterval - 100);
 }
 
 void SimulatorWindow::DecSpeed_clicked() {
     int currentInterval = Timer->interval();
-    Timer->setInterval(currentInterval + 50);
+    Timer->setInterval(currentInterval + 100);
 }
 
 void SimulatorWindow::loadRulesFromTable()
@@ -191,13 +198,10 @@ void SimulatorWindow::loadRulesFromTable()
         for (int j = 0; j < cols; ++j) {
             QModelIndex idx = model->index(i, j);
             QString value = (model->data(idx, Qt::DisplayRole)).toString();
-            qDebug() << '\n' << '\n';
-            qDebug() << value;
 
             QStringList list = value.split(",");
             QVector<QString> vec = list.toVector();
 
-            qDebug() << vec;
 
             if (vec.size() != 3) continue;
 
@@ -205,9 +209,6 @@ void SimulatorWindow::loadRulesFromTable()
                       vec[1].isEmpty() ? QChar::Null : vec[1].at(0), vec[2]};
 
             QString state = "q" + QString::number(i);
-            qDebug() << state;
-            qDebug() << headers_col[j];
-            qDebug() << '\n' << '\n';
             kernel->setRule(state, headers_col[j], rule);
         }
     }
