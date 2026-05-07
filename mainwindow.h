@@ -23,5 +23,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QVector<QChar> alphabet;
+    //QVector<QChar> prev_alphabet;
 };
 #endif // MAINWINDOW_H

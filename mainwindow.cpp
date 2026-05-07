@@ -17,60 +17,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/*
-void MainWindow::setAlphabet_clicked() {
-
-    QString text1 = ui->lineEdit_1->text();
-    QString text2 = ui->lineEdit_2->text();
-
-    QStringList symbols = (text1 + " " + text2).split(' ', Qt::SkipEmptyParts);
-
-    // if(!this->alphabet.isEmpty()) {
-    //     bool flag = 0;
-
-    //     for (int i = 0; i < alphabet.size(); ++i) {
-    //         for (int j = 0; j < symbols.size(); ++j) {
-    //             if (this->alphabet[i] == symbols[j]) {
-    //                 break;
-    //             } else if (this->alphabet[i] != symbols[j] && j == symbols.size() - 1) {
-    //                 flag = 1;
-    //                 break;
-    //             }
-    //         }
-
-    //         if(flag == 1) {
-    //             break;
-    //         }
-    //     }
-
-    //     if (flag == 0) {
-
-    //     }
-    // }
-
-    for (int i = 0; i < symbols.size(); ++i) {
-        const QString& s = symbols[i];
-        if (!s.isEmpty()) alphabet.push_back(s[0]);
-    }
-
-    if (alphabet.isEmpty()) {
-        QMessageBox::warning(this, "Ошибка", "Алфавит не может быть пустым");
-        return;
-    }
-
-
-    //SimulatorWindow *sim = new SimulatorWindow(this);
-    //sim->setAttribute(Qt::WA_DeleteOnClose);
-    //sim->show();
-
-    //hide();
-    //this->close();
-
-    SimulatorWindow simWindow(text1, text2, this);
-    simWindow.setModal(true);
-    simWindow.exec();
-} */
-
 void MainWindow::setAlphabet_clicked() {
     QString text1 = ui->lineEdit_1->text();
     QString text2 = ui->lineEdit_2->text();
@@ -99,7 +45,7 @@ void MainWindow::setAlphabet_clicked() {
     for (const QChar &ch : alphabet) unique.insert(ch);
     alphabet = unique.values().toVector();
 
-    SimulatorWindow simWindow(text1, text2, this);
+    SimulatorWindow simWindow(alphabet, this);
     simWindow.setModal(true);
     simWindow.exec();
 }

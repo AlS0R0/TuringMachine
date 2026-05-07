@@ -10,7 +10,8 @@ class ConditionTable : public QAbstractTableModel
 public:
     // ConditionTable(QObject* parent = nullptr);
     // ConditionTable(int rows, int cols, QObject* parent = nullptr);
-    ConditionTable(int rows, const QString &str1, const QString &str2, QObject* parent = nullptr);
+    //ConditionTable(int rows, const QString &str1, const QString &str2, QObject* parent = nullptr);
+    ConditionTable(int rows, const QVector<QChar> &vec, QObject* parent = nullptr);
 private:
     int rowCount_ = 0;
     int colCount_ = 0;
@@ -30,7 +31,7 @@ public:
     bool addEmptyRow();
     bool removeRow();
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    void updateAlphabet(const QString &str1, const QString &str2, bool forceClear);
+    void updateAlphabet(QVector<QChar> newHeaders);
 };
 
 #endif // CONDITIONTABLE_H

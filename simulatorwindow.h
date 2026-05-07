@@ -17,7 +17,7 @@ class SimulatorWindow : public QDialog
 
 public:
     // explicit SimulatorWindow(QWidget *parent = nullptr);
-    explicit SimulatorWindow(QString str1, QString str2, QWidget *parent = nullptr);
+    explicit SimulatorWindow(QVector<QChar> vec, QWidget *parent = nullptr);
     ~SimulatorWindow();
 
 private slots:

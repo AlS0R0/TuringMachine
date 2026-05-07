@@ -3,6 +3,7 @@
 #include "conditiontable.h"
 #include "tapewidget.h"
 #include "turingmachinekernel.h"
+#include "changealphabetforturingmachine.h"
 #include <QTableView>
 #include <QMessageBox>
 
@@ -25,7 +26,7 @@ SimulatorWindow::SimulatorWindow(QWidget *parent)
 }
 */
 
-SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
+SimulatorWindow::SimulatorWindow(QVector<QChar> vec, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::SimulatorWindow)
 {
@@ -55,7 +56,7 @@ SimulatorWindow::SimulatorWindow(QString str1, QString str2, QWidget *parent)
     connect(ui->DecSpeed, &QPushButton::clicked, this, &SimulatorWindow::DecSpeed_clicked);
 
 
-    this->model = new ConditionTable(1, str1, str2, this);
+    this->model = new ConditionTable(1, vec, this);
 
     this->tableView = new QTableView();
     tableView->setModel(this->model);
@@ -94,8 +95,18 @@ void SimulatorWindow::RemoveCondition_clicked()
 
 void SimulatorWindow::ChangeAlphabet_clicked()
 {
-    hide();
-    this->model->addEmptyRow();
+    setControlsEnabled(false);
+
+    QVector<QChar> new_alphabet;
+
+    ChangeAlphabetForTuringMachine changeWindow(this, &new_alphabet);
+    changeWindow.setModal(true);
+    changeWindow.exec();
+
+    setControlsEnabled(true);
+
+    model->updateAlphabet(new_alphabet);
+
 }
 
 void SimulatorWindow::SetLine_clicked()
