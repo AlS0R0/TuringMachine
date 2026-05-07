@@ -49,6 +49,7 @@ SimulatorWindow::SimulatorWindow(QVector<QChar> vec, QWidget *parent)
     connect(ui->SetLine, &QPushButton::clicked, this, &SimulatorWindow::SetLine_clicked);
     connect(ui->StartMachine, &QPushButton::clicked, this, &SimulatorWindow::StartMachine_clicked);
     connect(ui->StepMachine, &QPushButton::clicked, this, &SimulatorWindow::StepMachine_clicked);
+    connect(ui->ContinueButton, &QPushButton::clicked, this, &SimulatorWindow::ContinueButton_clicked);
     connect(ui->PauseMachine, &QPushButton::clicked, this, &SimulatorWindow::PauseMachine_clicked);
     connect(ui->StopMachine, &QPushButton::clicked, this, &SimulatorWindow::StopMachine_clicked);
     connect(ui->ResetLine, &QPushButton::clicked, this, &SimulatorWindow::ResetLine_clicked);
@@ -78,6 +79,7 @@ void SimulatorWindow::setControlsEnabled(bool enabled)
     ui->RemoveCondition->setEnabled(enabled);
     ui->ChangeAlphabet->setEnabled(enabled);
     ui->StartMachine->setEnabled(enabled);
+    ui->ContinueButton->setEnabled(enabled);
     // Кнопки скорости всегда активны
 }
 
@@ -143,7 +145,13 @@ void SimulatorWindow::StepMachine_clicked() {
     qDebug() << "Step";
 }
 
+void SimulatorWindow::ContinueButton_clicked() {
+    ui->ContinueButton->setEnabled(false);
+    Timer->start();
+}
+
 void SimulatorWindow::PauseMachine_clicked() {
+    ui->ContinueButton->setEnabled(true);
     Timer->stop();
 }
 
@@ -162,12 +170,12 @@ void SimulatorWindow::ResetLine_clicked() {
 
 void SimulatorWindow::IncSpeed_clicked() {
     int currentInterval = Timer->interval();
-    Timer->setInterval(currentInterval + 50);
+    if (currentInterval >= 100) Timer->setInterval(currentInterval - 50);
 }
 
 void SimulatorWindow::DecSpeed_clicked() {
     int currentInterval = Timer->interval();
-    if (currentInterval >= 100) Timer->setInterval(currentInterval - 50);
+    Timer->setInterval(currentInterval + 50);
 }
 
 void SimulatorWindow::loadRulesFromTable()
@@ -175,9 +183,6 @@ void SimulatorWindow::loadRulesFromTable()
     if (!model || !kernel) return;
 
     QVector<QChar> headers_col = model->getColumnHeaders();
-    //QVector<QChar> headers_row = model->getRowHeaders();
-    //qDebug() << headers_col << ' ' << headers_row;
-    //QSet<QChar> alphabet(headers.begin(), headers.end());
 
     int rows = model->rowCount(QModelIndex());
     int cols = model->columnCount(QModelIndex());

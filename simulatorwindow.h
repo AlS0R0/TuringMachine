@@ -27,6 +27,7 @@ private slots:
     void SetLine_clicked();
     void StartMachine_clicked();
     void StepMachine_clicked();
+    void ContinueButton_clicked();
     void PauseMachine_clicked();
     void StopMachine_clicked();
     void ResetLine_clicked();
