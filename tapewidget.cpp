@@ -60,6 +60,20 @@ void TapeWidget::animateStep()
     m_animation->start();
 }
 
+int TapeWidget::scrollOffset() const
+{
+    return m_scrollOffset;
+}
+
+void TapeWidget::setScrollOffset(int offset)
+{
+    if (m_scrollOffset != offset) {
+        m_scrollOffset = offset;
+        update();
+        emit scrollOffsetChanged(m_scrollOffset);
+    }
+}
+
 void TapeWidget::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
@@ -130,6 +144,8 @@ void TapeWidget::adjustScroll()
     double marginLeft = width() * 0.75;
     double marginRight = width() * 0.75;
 
+    int oldOffset = m_scrollOffset;
+
     if (caretVisX < marginLeft) {
 
         double delta = marginLeft - caretVisX;
@@ -142,6 +158,11 @@ void TapeWidget::adjustScroll()
     }
 
     m_caretLogicalX = m_kernel->getHead() * m_cellWidth;
+
+    if (m_scrollOffset != oldOffset) {
+        update();
+        emit scrollOffsetChanged(m_scrollOffset);
+    }
 }
 
 double TapeWidget::visualCaretX() const

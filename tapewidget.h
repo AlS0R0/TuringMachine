@@ -21,6 +21,9 @@ public:
     void setKernel(TuringMachineKernel *kernel);
     void animateStep();
 
+    int scrollOffset() const;
+    void setScrollOffset(int offset);
+
     double caretLogicalX() const;
     void setCaretLogicalX(double x);
 
@@ -30,6 +33,9 @@ protected:
 
 private slots:
     void onAnimationFinished();
+
+signals:
+    void scrollOffsetChanged(int offset);
 
 private:
     TuringMachineKernel *m_kernel = nullptr;

@@ -21,6 +21,24 @@ SimulatorWindow::SimulatorWindow(QVector<QChar> vec, QWidget *parent)
 
     ui->verticalLayout->addWidget(m_tapeWidget);
 
+    QScrollBar* scrollBar = ui->horizontalScrollBar;
+    scrollBar->setMinimum(-5000);
+    scrollBar->setMaximum(5000);
+    scrollBar->setPageStep(200);
+    scrollBar->setValue(0);
+
+    connect(scrollBar, &QScrollBar::valueChanged,
+            m_tapeWidget, &TapeWidget::setScrollOffset);
+
+    connect(m_tapeWidget, &TapeWidget::scrollOffsetChanged,
+            this, [scrollBar](int offset) {
+                if (scrollBar->value() != offset) {
+                    scrollBar->blockSignals(true);
+                    scrollBar->setValue(offset);
+                    scrollBar->blockSignals(false);
+                }
+            });
+
     Timer = new QTimer;
     Timer->setInterval(500);
     connect(Timer, &QTimer::timeout, this, &SimulatorWindow::StepMachine_clicked);
@@ -55,6 +73,13 @@ SimulatorWindow::~SimulatorWindow()
 
 void SimulatorWindow::setControlsEnabled(bool enabled)
 {
+    if(!enabled) {
+        tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    } else {
+        tableView->setEditTriggers(QAbstractItemView::DoubleClicked |
+                                       QAbstractItemView::AnyKeyPressed);
+
+    }
     ui->LineTape->setReadOnly(!enabled);
     ui->SetLine->setEnabled(enabled);
     ui->AddCondition->setEnabled(enabled);
