@@ -167,6 +167,7 @@ void SimulatorWindow::PauseMachine_clicked() {
 void SimulatorWindow::StopMachine_clicked() {
     Timer->stop();
     setControlsEnabled(true);
+    ui->ContinueButton->setEnabled(false);
 }
 
 void SimulatorWindow::ResetLine_clicked() {
@@ -219,10 +220,11 @@ void SimulatorWindow::loadRulesFromTable()
                     isHalt = true;
                 } else if (part.size() == 2 && part[0] == 'q' && part[1].isDigit()) {
                     nextState = part;
-                } else if (part.size() == 1) {
+                } else if (part.size() == 1 && headers_col.contains(part[0])) {
                     writeChar = part[0];
                 } else {
                     QMessageBox::warning(this, "Стоп", "Не существует подходящего действия");
+                    return;
                 }
             }
 
