@@ -15,6 +15,7 @@ public:
 private:
     int rowCount_ = 0;
     int colCount_ = 0;
+    QModelIndex activeIndex_;
 protected:
     QHash<QModelIndex, QVariant> cellData_;
     QVector<QChar> columnHeaders;
@@ -30,6 +31,8 @@ public:
     bool removeRow();
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     void updateAlphabet(QVector<QChar> newHeaders);
+    void setActiveIndex(int row, int col);
+    void clearActiveIndex();
 };
 
 #endif // CONDITIONTABLE_H

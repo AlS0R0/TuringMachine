@@ -46,6 +46,7 @@ private:
 
 
     void setControlsEnabled(bool enabled);
+    void updateTableHighlight();
 };
 
 #endif // SIMULATORWINDOW_H

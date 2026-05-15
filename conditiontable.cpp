@@ -1,6 +1,7 @@
 #include "conditiontable.h"
 #include <QAbstractTableModel>
-
+#include <QColor>
+#include <QBrush>
 
 ConditionTable::ConditionTable(int rows, const QVector<QChar> &vec, QObject* parent)
     : QAbstractTableModel(parent), rowCount_(rows), colCount_(vec.size() + 1), columnHeaders(vec)
@@ -36,6 +37,13 @@ QVariant ConditionTable::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         return cellData_.value(index, QVariant());
+    }
+
+    if (role == Qt::BackgroundRole) {
+        if (index.isValid() && index == activeIndex_) {
+            return QBrush(QColor(255, 255, 0));
+        }
+        return QVariant();
     }
 
     return QVariant();
@@ -93,13 +101,6 @@ bool ConditionTable::removeRow()
 
 QVariant ConditionTable::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    // if (role == Qt::BackgroundRole) {
-    //     if (orientation == Qt::Vertical) {
-    //         return QColor(Qt::yellow);   // цвет подсветки заголовка (например, светло-серый)
-    //     }
-    //     return QVariant();
-    // }
-
     if (role != Qt::DisplayRole) {
         return QVariant();
     }
@@ -160,4 +161,25 @@ void ConditionTable::updateAlphabet(QVector<QChar> newHeaders)
 
     colCount_ = columnHeaders.size();
     endResetModel();
+}
+
+void ConditionTable::setActiveIndex(int row, int col) {
+    QModelIndex newIndex = index(row, col);
+    if (newIndex == activeIndex_) return;
+
+    QModelIndex oldIndex = activeIndex_;
+    activeIndex_ = newIndex;
+
+    if (oldIndex.isValid())
+        emit dataChanged(oldIndex, oldIndex, {Qt::BackgroundRole});
+    if (newIndex.isValid())
+        emit dataChanged(newIndex, newIndex, {Qt::BackgroundRole});
+}
+
+void ConditionTable::clearActiveIndex() {
+    if (!activeIndex_.isValid()) return;
+
+    QModelIndex old = activeIndex_;
+    activeIndex_ = QModelIndex();
+    emit dataChanged(old, old, {Qt::BackgroundRole});
 }

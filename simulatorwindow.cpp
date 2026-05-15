@@ -91,14 +91,18 @@ void SimulatorWindow::setControlsEnabled(bool enabled)
 
 void SimulatorWindow::AddCondition_clicked()
 {
-    if (model)
+    if (model) {
         this->model->addEmptyRow();
+        model->clearActiveIndex();
+    }
 }
 
 void SimulatorWindow::RemoveCondition_clicked()
 {
-    if (model)
+    if (model) {
         this->model->removeRow();
+        model->clearActiveIndex();
+    }
 }
 
 void SimulatorWindow::ChangeAlphabet_clicked()
@@ -131,6 +135,8 @@ void SimulatorWindow::SetLine_clicked()
     kernel->setInputString(input);
     initialInput_ = input;
     m_tapeWidget->setKernel(kernel);
+
+    updateTableHighlight();
 }
 
 void SimulatorWindow::StartMachine_clicked()
@@ -142,6 +148,7 @@ void SimulatorWindow::StartMachine_clicked()
     }
 
     setControlsEnabled(false);
+    updateTableHighlight();
 }
 
 void SimulatorWindow::StepMachine_clicked() {
@@ -152,6 +159,7 @@ void SimulatorWindow::StepMachine_clicked() {
     }
 
     m_tapeWidget->animateStep();
+    updateTableHighlight();
 }
 
 void SimulatorWindow::ContinueButton_clicked() {
@@ -161,12 +169,14 @@ void SimulatorWindow::ContinueButton_clicked() {
 
 void SimulatorWindow::PauseMachine_clicked() {
     ui->ContinueButton->setEnabled(true);
+    updateTableHighlight();
     Timer->stop();
 }
 
 void SimulatorWindow::StopMachine_clicked() {
     Timer->stop();
     setControlsEnabled(true);
+    model->clearActiveIndex();
     ui->ContinueButton->setEnabled(false);
 }
 
@@ -175,6 +185,7 @@ void SimulatorWindow::ResetLine_clicked() {
     kernel->reset(initialInput_);
     m_tapeWidget->setKernel(kernel);
     m_tapeWidget->update();
+    updateTableHighlight();
     setControlsEnabled(true);
 }
 
@@ -237,4 +248,29 @@ void SimulatorWindow::loadRulesFromTable()
             }
         }
     }
+}
+
+void SimulatorWindow::updateTableHighlight() {
+    if (!kernel || !model) return;
+
+    QString state = kernel->getState();
+    QChar symbol = kernel->getSymbol(kernel->getHead());
+
+    bool valid;
+    int row = state.mid(1).toInt(&valid);
+
+    if (!valid) {
+        model->clearActiveIndex();
+        return;
+    }
+
+    QVector<QChar> headers = model->getColumnHeaders();
+    int col = headers.indexOf(symbol);
+
+    if (col < 0) {
+        model->clearActiveIndex();
+        return;
+    }
+
+    model->setActiveIndex(row, col);
 }
